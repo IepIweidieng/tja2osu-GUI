@@ -224,12 +224,12 @@ def convertio(filein, artist, creator, fileout):
                         delay_list1.append(1000*float(block[1].rstrip()))
                         offset += 1000*float(block[1].rstrip())
                 elif line.startswith("//") is False:
-                    if glock or (fraction_measure and len(get) == 0):
-                        if timep < 0:
-                            data_k.append([get.rstrip(","), offset, timep, measure, gogo, sevol_scaled, bpm, scroll])
-                            timep = float(60000/bpm)
-                        if fraction_measure and len(get) == 0:
-                            data_k.append([get.rstrip(","), offset, timep, measure, gogo, sevol_scaled, bpm, scroll])
+                    is_fraction_barline = (fraction_measure and len(get) == 0)
+                    if glock or is_fraction_barline:
+                        if timep > 0 or is_fraction_barline:
+                            data_k.append([get.rstrip(","), offset, 60000 / bpm, measure, gogo, sevol_scaled, bpm, scroll])
+                        if timep < 0 or is_fraction_barline:
+                            data_k.append([get.rstrip(","), offset, -1 * 100 / scroll, measure, gogo, sevol_scaled, bpm, scroll])
                         changed = False
                         glock = False
                     if line.rstrip("\n") == ",":
