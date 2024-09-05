@@ -66,6 +66,8 @@ shou = 0
 offset = 0
 off_k = 0
 songvol = 100
+sevol = 100
+sevol_scaled = 100
 measure = 4/4
 changed = False
 glock = False
@@ -132,7 +134,7 @@ general_k = [
     ]
 general = general_k
 def convertio(filein, artist, creator, fileout):
-    global title, general, data_s, ChangingPoints, general_k, crop, delay_list, delay_list1, get, timec, scroll, version, bpm_k, glock, timep, lasted, tear, bpm, shou, offset, off_k, changed, measure, songvol, gogo
+    global title, general, data_s, ChangingPoints, general_k, crop, delay_list, delay_list1, get, timec, scroll, version, bpm_k, glock, timep, lasted, tear, bpm, shou, offset, off_k, changed, measure, songvol, sevol, sevol_scaled, gogo
     artist = artist
     creator = creator
     with open(filein, encoding="cp932", errors='ignore')as inp:
@@ -156,7 +158,11 @@ def convertio(filein, artist, creator, fileout):
                     offset = -1000 * float(block[1].rstrip())
                     off_k = offset
                 elif block[0] == "SONGVOL":
-                    songvol = int(block[1].rstrip())
+                    songvol = float(block[1].rstrip())
+                    sevol_scaled = round(min(100, 100 * sevol / max(1, songvol)))
+                elif block[0] == "SEVOL":
+                    sevol = float(block[1].rstrip())
+                    sevol_scaled = round(min(100, 100 * sevol / max(1, songvol)))
                 elif block[0] == "COURSE":
                     if block[1].rstrip() == "Easy" or block[1].rstrip() == "0":
                         version = "Kantan"
@@ -173,13 +179,13 @@ def convertio(filein, artist, creator, fileout):
                 line = inp.readline()
             ChangingPoints.append([offset, bpm, scroll])
             line = inp.readline()
-            data_s=[offset, timep, gogo, songvol]
+            data_s=[offset, timep, gogo, sevol_scaled]
             while line.rstrip() != "#END":
                 if line[0] == "#":
                     block = line.split(" ")
                     if block[0].rstrip() == "#BPMCHANGE":
                         if changed:
-                            data_k.append([get.rstrip(","), offset, timep, gogo, songvol, bpm, scroll])
+                            data_k.append([get.rstrip(","), offset, timep, gogo, sevol_scaled, bpm, scroll])
                             changed = False
                         else:
                             changed = True
@@ -203,7 +209,7 @@ def convertio(filein, artist, creator, fileout):
                             shou = 60000/bpm*4*measure
                     elif block[0].rstrip() == "#SCROLL":
                         if changed:
-                            data_k.append([get.rstrip(","), offset, timep, gogo, songvol, bpm, scroll])
+                            data_k.append([get.rstrip(","), offset, timep, gogo, sevol_scaled, bpm, scroll])
                             changed = False
                         else:
                             changed = True
@@ -216,7 +222,7 @@ def convertio(filein, artist, creator, fileout):
                         offset += 1000*float(block[1].rstrip())
                 elif line.startswith("//") is False:
                     if glock:
-                        data_k.append([get.rstrip(","), offset, timep, gogo, songvol, bpm, scroll])
+                        data_k.append([get.rstrip(","), offset, timep, gogo, sevol_scaled, bpm, scroll])
                         changed = False
                         glock = False
                     if line.rstrip("\n") == ",":
