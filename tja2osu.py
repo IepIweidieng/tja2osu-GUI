@@ -1,11 +1,12 @@
+from math import ceil
 import os
 
-def TimingPoint(off, command, goed, vol):
+def TimingPoint(off, command, measure, goed, vol):
     offs = int(off)
     if command < 0:
-        return f"{offs},{round(command,12)},4,1,0,{vol},0,{goed}\n"
+        return f"{offs},{round(command,12)},{ceil(round(4 * measure, 12))},1,0,{vol},0,{goed}\n"
     elif command > 0:
-        return f"{offs},{round(command,12)},4,1,0,{vol},1,{goed}\n"
+        return f"{offs},{round(command,12)},{ceil(round(4 * measure, 12))},1,0,{vol},1,{goed}\n"
     
 def don(off):
     return f"256,192,{off},1,0,0:0:0:0:\n"
@@ -69,6 +70,7 @@ songvol = 100
 sevol = 100
 sevol_scaled = 100
 measure = 4/4
+fraction_measure = False
 changed = False
 glock = False
 crop = []
@@ -134,7 +136,7 @@ general_k = [
     ]
 general = general_k
 def convertio(filein, artist, creator, fileout):
-    global title, general, data_s, ChangingPoints, general_k, crop, delay_list, delay_list1, get, timec, scroll, version, bpm_k, glock, timep, lasted, tear, bpm, shou, offset, off_k, changed, measure, songvol, sevol, sevol_scaled, gogo
+    global title, general, data_s, ChangingPoints, general_k, crop, delay_list, delay_list1, get, timec, scroll, version, bpm_k, glock, timep, lasted, tear, bpm, shou, offset, off_k, changed, measure, fraction_measure, songvol, sevol, sevol_scaled, gogo
     artist = artist
     creator = creator
     with open(filein, encoding="cp932", errors='ignore')as inp:
@@ -179,13 +181,13 @@ def convertio(filein, artist, creator, fileout):
                 line = inp.readline()
             ChangingPoints.append([offset, bpm, scroll])
             line = inp.readline()
-            data_s=[offset, timep, gogo, sevol_scaled]
+            data_s=[offset, timep, measure, gogo, sevol_scaled]
             while line.rstrip() != "#END":
                 if line[0] == "#":
                     block = line.split(" ")
                     if block[0].rstrip() == "#BPMCHANGE":
                         if changed:
-                            data_k.append([get.rstrip(","), offset, timep, gogo, sevol_scaled, bpm, scroll])
+                            data_k.append([get.rstrip(","), offset, timep, measure, gogo, sevol_scaled, bpm, scroll])
                             changed = False
                         else:
                             changed = True
@@ -207,9 +209,10 @@ def convertio(filein, artist, creator, fileout):
                         except:
                             measure = 4/4
                             shou = 60000/bpm*4*measure
+                        fraction_measure = ((4 * measure) % 1 != 0)
                     elif block[0].rstrip() == "#SCROLL":
                         if changed:
-                            data_k.append([get.rstrip(","), offset, timep, gogo, sevol_scaled, bpm, scroll])
+                            data_k.append([get.rstrip(","), offset, timep, measure, gogo, sevol_scaled, bpm, scroll])
                             changed = False
                         else:
                             changed = True
@@ -221,8 +224,12 @@ def convertio(filein, artist, creator, fileout):
                         delay_list1.append(1000*float(block[1].rstrip()))
                         offset += 1000*float(block[1].rstrip())
                 elif line.startswith("//") is False:
-                    if glock:
-                        data_k.append([get.rstrip(","), offset, timep, gogo, sevol_scaled, bpm, scroll])
+                    if glock or (fraction_measure and len(get) == 0):
+                        if timep < 0:
+                            data_k.append([get.rstrip(","), offset, timep, measure, gogo, sevol_scaled, bpm, scroll])
+                            timep = float(60000/bpm)
+                        if fraction_measure and len(get) == 0:
+                            data_k.append([get.rstrip(","), offset, timep, measure, gogo, sevol_scaled, bpm, scroll])
                         changed = False
                         glock = False
                     if line.rstrip("\n") == ",":
@@ -235,10 +242,10 @@ def convertio(filein, artist, creator, fileout):
                         if data_k != []:
                             for i in data_k:
                                 trans = i[1] + shou * len(i[0]) / tem
-                                data.append([trans, i[2], i[3], i[4]])
+                                data.append([trans, i[2], i[3], i[4], i[5]])
                                 if ChangingPoints[-1][0] == trans:
                                     ChangingPoints = ChangingPoints[:-1]
-                                ChangingPoints.append([trans, i[5], i[6]])
+                                ChangingPoints.append([trans, i[6], i[7]])
                         yerd = offset
                         for i in get.rstrip(","):
                             if int(yerd) in delay_list:
@@ -271,7 +278,7 @@ def convertio(filein, artist, creator, fileout):
                 general[25] = "Version:"
                 output.write("[TimingPoints]\n")
                 for i in data:
-                    drx = TimingPoint(i[0],i[1],i[2],i[3])
+                    drx = TimingPoint(i[0],i[1],i[2],i[3],i[4])
                     output.write(drx)
                 output.write("\n\n[HitObjects]\n")
                 while humen != []:
