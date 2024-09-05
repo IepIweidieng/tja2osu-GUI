@@ -94,18 +94,18 @@ general_k = [
     "WidescreenStoryboard: 0",
     "",
     "[Editor]",
-    "DistanceSpacing: 0.8", #15
+    "DistanceSpacing: 0.8", #14
     "BeatDivisor: 7",
     "GridSize: 32",
     "TimelineZoom: 1",
     "",
-    "[Metadata]", #20
-    "Title:", #21
-    "TitleUnicode:", #22
-    "Artist:", #23
-    "ArtistUnicode:", #24
-    "Creator:", #25
-    "Version:", #26
+    "[Metadata]", #19
+    "Title:", #20
+    "TitleUnicode:", #21
+    "Artist:", #22
+    "ArtistUnicode:", #23
+    "Creator:", #24
+    "Version:", #25
     "Source:",
     "Tags:",
     "BeatmapID:0",
@@ -249,20 +249,20 @@ def convertio(filein, artist, creator, fileout):
             if os.path.exists(os.path.join(fileout, f"{artist} - {title}({creator})[{version}].osu")):
                 os.remove(os.path.join(fileout, f"{artist} - {title}({creator})[{version}].osu"))
             with open(os.path.join(fileout, f"{artist} - {title}({creator})[{version}].osu"), mode = "a+", encoding = "utf-8") as output:
+                general[20] += title
                 general[21] += title
-                general[22] += title
+                general[22] += artist
                 general[23] += artist
-                general[24] += artist
-                general[25] += creator
-                general[26] += version
+                general[24] += creator
+                general[25] += version
                 for i in general:
                     output.write(i+"\n")
-                general[21] = "Title:"
-                general[22] = "TitleUnicode:"
-                general[23] = "Artist:"
-                general[24] = "ArtistUnicode:"
-                general[25] = "Creator:"
-                general[26] = "Version:"
+                general[20] = "Title:"
+                general[21] = "TitleUnicode:"
+                general[22] = "Artist:"
+                general[23] = "ArtistUnicode:"
+                general[24] = "Creator:"
+                general[25] = "Version:"
                 output.write("[TimingPoints]\n")
                 for i in data:
                     drx = TimingPoint(i[0],i[1],i[2],i[3])
