@@ -37,7 +37,7 @@ def slide(last, off, big=False):
                 beats = ChangingPoints[i][1]
                 scr = ChangingPoints[i][2]
                 break       
-    curve = 100 * (off - last) * beats * 1.4 * scr / 60000
+    curve = 100 * (off - last) * beats * 1.333 * scr / 60000
     curin = 256 + int(curve)
     laster = int(last)
     if big:
@@ -121,7 +121,7 @@ general_k = [
     "CircleSize:5",
     "OverallDifficulty:7.5",
     "ApproachRate:5",
-    "SliderMultiplier:1.4",
+    "SliderMultiplier:1.333",
     "SliderTickRate:1",
     "",
     "[Events]",
