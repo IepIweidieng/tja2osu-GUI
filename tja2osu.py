@@ -265,9 +265,10 @@ def convertio(filein, artist, creator, fileout):
                         data_k = []
                 line = inp.readline()
             data = cleanlist(data_s, data)
-            if os.path.exists(os.path.join(fileout, f"{artist} - {title}({creator})[{version}].osu")):
-                os.remove(os.path.join(fileout, f"{artist} - {title}({creator})[{version}].osu"))
-            with open(os.path.join(fileout, f"{artist} - {title}({creator})[{version}].osu"), mode = "a+", encoding = "utf-8") as output:
+            filename_osu = f"{artist} - {title} ({creator}) [{version}].osu".replace("/", "_").replace("\\", "_")
+            if os.path.exists(os.path.join(fileout, filename_osu)):
+                os.remove(os.path.join(fileout, filename_osu))
+            with open(os.path.join(fileout, filename_osu), mode = "a+", encoding = "utf-8") as output:
                 general[20] += title
                 general[21] += title
                 general[22] += artist
