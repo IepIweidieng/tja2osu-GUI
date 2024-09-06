@@ -88,7 +88,7 @@ general_k = [
     "osu file format v14",
     "",
     "[General]",
-    "AudioFilename: audio.mp3",
+    "AudioFilename: audio.ogg",
     "AudioLeadIn: 0",
     "PreviewTime: -1",
     "Countdown: 0",
@@ -99,8 +99,8 @@ general_k = [
     "WidescreenStoryboard: 0",
     "",
     "[Editor]",
-    "DistanceSpacing: 0.8", #14
-    "BeatDivisor: 7",
+    "DistanceSpacing: 1", #14
+    "BeatDivisor: 8",
     "GridSize: 32",
     "TimelineZoom: 1",
     "",
@@ -126,6 +126,7 @@ general_k = [
     "",
     "[Events]",
     "//Background and Video events",
+    '0,0,"bg.jpg",0,0',
     "//Break Periods",
     "//Storyboard Layer 0 (Background)",
     "//Storyboard Layer 1 (Fail)",
