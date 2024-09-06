@@ -1,12 +1,12 @@
 from math import ceil
 import os
 
-def TimingPoint(off, command, measure, goed, vol):
+def TimingPoint(off, command, measure, goed, bar_hidden, vol):
     offs = int(off)
     if command < 0:
-        return f"{offs},{round(command,12)},{ceil(round(4 * measure, 12))},1,0,{vol},0,{goed}\n"
+        return f"{offs},{round(command,12)},{ceil(round(4 * measure, 12))},1,0,{vol},0,{goed + 8 * bar_hidden}\n"
     elif command > 0:
-        return f"{offs},{round(command,12)},{ceil(round(4 * measure, 12))},1,0,{vol},1,{goed}\n"
+        return f"{offs},{round(command,12)},{ceil(round(4 * measure, 12))},1,0,{vol},1,{goed + 8 * bar_hidden}\n"
     
 def don(off):
     return f"256,192,{off},1,0,0:0:0:0:\n"
@@ -61,6 +61,7 @@ version = ""
 timec = 0.0
 timep = 0.0
 gogo = 0
+bar_hidden = 0
 bpm = 0
 bpm_k = 0
 shou = 0
@@ -136,7 +137,7 @@ general_k = [
     ]
 general = general_k
 def convertio(filein, artist, creator, fileout):
-    global title, general, data_s, ChangingPoints, general_k, crop, delay_list, delay_list1, get, timec, scroll, version, bpm_k, glock, timep, lasted, tear, bpm, shou, offset, off_k, changed, measure, fraction_measure, songvol, sevol, sevol_scaled, gogo
+    global title, general, data_s, ChangingPoints, general_k, crop, delay_list, delay_list1, get, timec, scroll, version, bpm_k, glock, timep, lasted, tear, bpm, shou, offset, off_k, changed, measure, fraction_measure, songvol, sevol, sevol_scaled, gogo, bar_hidden
     artist = artist
     creator = creator
     with open(filein, encoding="cp932", errors='ignore')as inp:
@@ -181,13 +182,13 @@ def convertio(filein, artist, creator, fileout):
                 line = inp.readline()
             ChangingPoints.append([offset, bpm, scroll])
             line = inp.readline()
-            data_s=[offset, timep, measure, gogo, sevol_scaled]
+            data_s=[offset, timep, measure, gogo, bar_hidden, sevol_scaled]
             while line.rstrip() != "#END":
                 if line[0] == "#":
                     block = line.split(" ")
                     if block[0].rstrip() == "#BPMCHANGE":
                         if changed:
-                            data_k.append([get.rstrip(","), offset, timep, measure, gogo, sevol_scaled, bpm, scroll])
+                            data_k.append([get.rstrip(","), offset, timep, measure, gogo, bar_hidden, sevol_scaled, bpm, scroll])
                             changed = False
                         else:
                             changed = True
@@ -201,6 +202,10 @@ def convertio(filein, artist, creator, fileout):
                     elif block[0].rstrip() == "#GOGOEND":
                         glock = True
                         gogo = 0
+                    elif block[0].rstrip() == "#BARLINEOFF":
+                        bar_hidden = 1
+                    elif block[0].rstrip() == "#BARLINEON":
+                        bar_hidden = 0
                     elif block[0].rstrip() == "#MEASURE":
                         try:
                             got = block[1].rstrip().split("/")
@@ -212,7 +217,7 @@ def convertio(filein, artist, creator, fileout):
                         fraction_measure = ((4 * measure) % 1 != 0)
                     elif block[0].rstrip() == "#SCROLL":
                         if changed:
-                            data_k.append([get.rstrip(","), offset, timep, measure, gogo, sevol_scaled, bpm, scroll])
+                            data_k.append([get.rstrip(","), offset, timep, measure, gogo, bar_hidden, sevol_scaled, bpm, scroll])
                             changed = False
                         else:
                             changed = True
@@ -225,11 +230,11 @@ def convertio(filein, artist, creator, fileout):
                         offset += 1000*float(block[1].rstrip())
                 elif line.startswith("//") is False:
                     is_fraction_barline = (fraction_measure and len(get) == 0)
-                    if glock or is_fraction_barline:
+                    if glock or is_fraction_barline or bar_hidden:
                         if timep > 0 or is_fraction_barline:
-                            data_k.append([get.rstrip(","), offset, 60000 / bpm, measure, gogo, sevol_scaled, bpm, scroll])
+                            data_k.append([get.rstrip(","), offset, 60000 / bpm, measure, gogo, bar_hidden, sevol_scaled, bpm, scroll])
                         if timep < 0 or is_fraction_barline:
-                            data_k.append([get.rstrip(","), offset, -1 * 100 / scroll, measure, gogo, sevol_scaled, bpm, scroll])
+                            data_k.append([get.rstrip(","), offset, -1 * 100 / scroll, measure, gogo, bar_hidden, sevol_scaled, bpm, scroll])
                         changed = False
                         glock = False
                     if line.rstrip("\n") == ",":
@@ -242,10 +247,10 @@ def convertio(filein, artist, creator, fileout):
                         if data_k != []:
                             for i in data_k:
                                 trans = i[1] + shou * len(i[0]) / tem
-                                data.append([trans, i[2], i[3], i[4], i[5]])
+                                data.append([trans, i[2], i[3], i[4], i[5], i[6]])
                                 if ChangingPoints[-1][0] == trans:
                                     ChangingPoints = ChangingPoints[:-1]
-                                ChangingPoints.append([trans, i[6], i[7]])
+                                ChangingPoints.append([trans, i[7], i[8]])
                         yerd = offset
                         for i in get.rstrip(","):
                             if int(yerd) in delay_list:
@@ -278,7 +283,7 @@ def convertio(filein, artist, creator, fileout):
                 general[25] = "Version:"
                 output.write("[TimingPoints]\n")
                 for i in data:
-                    drx = TimingPoint(i[0],i[1],i[2],i[3],i[4])
+                    drx = TimingPoint(i[0],i[1],i[2],i[3],i[4],i[5])
                     output.write(drx)
                 output.write("\n\n[HitObjects]\n")
                 while humen != []:
